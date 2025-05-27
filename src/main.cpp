@@ -1,3 +1,4 @@
+#include "Asteroid.h"
 #include <raylib.h>
 
 int main()
