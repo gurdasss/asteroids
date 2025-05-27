@@ -11,10 +11,22 @@ int main()
     constexpr int targetFPS{60};
     SetTargetFPS(targetFPS);
 
+    Asteroid ast{};
+    ast.setRadius(20);
+    ast.setPosition(Vector2{100, 100});
+    ast.setTint(RED);
+    ast.setInitialVelocityX(100);
+
     while (!WindowShouldClose())
     {
+
+        constexpr float delta{1.0f / targetFPS};
+        ast.applyVelocity(delta);
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
+
+        DrawCircleV(ast.getPosition(), ast.getRadius(), ast.getTint());
 
         DrawFPS(0, 0);
         EndDrawing();
