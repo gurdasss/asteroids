@@ -15,7 +15,6 @@ int main()
     ast.setRadius(20);
     ast.setPosition(Vector2{100, 100});
     ast.setTint(RED);
-    ast.setInitialVelocityX(100);
 
     while (!WindowShouldClose())
     {

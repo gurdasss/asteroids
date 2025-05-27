@@ -7,8 +7,10 @@
 class Asteroid : public Circle2D
 {
 public:
-    void setInitialVelocityX(float initialVelocityX) { m_velocity.x = initialVelocityX; }
-    void setInitialVelocityY(float initialVelocityY) { m_velocity.y = initialVelocityY; }
+    Asteroid(float initialVelocityX = 0, float initialVelocityY = 0)
+        : m_velocity{initialVelocityX, initialVelocityY}
+    {
+    }
 
     void applyVelocity(float delta);
 
