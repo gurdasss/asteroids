@@ -1,5 +1,10 @@
-#include "Asteroid.h"
+#include "ZeroGravityObject.h"
+#include "Random.h"
 #include <raylib.h>
+#include <forward_list>
+#include <cmath>
+
+void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids);
 
 int main()
 {
@@ -11,21 +16,24 @@ int main()
     constexpr int targetFPS{60};
     SetTargetFPS(targetFPS);
 
-    Asteroid ast{};
-    ast.setRadius(20);
-    ast.setPosition(Vector2{100, 100});
-    ast.setTint(RED);
+    std::forward_list<ZeroGravityObject> asteroids{};
+    initAsteroids(asteroids);
 
     while (!WindowShouldClose())
     {
 
-        constexpr float delta{1.0f / targetFPS};
-        ast.applyVelocity(delta);
+        [[maybe_unused]] constexpr float delta{1.0f / targetFPS};
+
+        for (ZeroGravityObject &asteroid : asteroids)
+            asteroid.applyVelocity(delta);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        DrawCircleV(ast.getPosition(), ast.getRadius(), ast.getTint());
+        for (const ZeroGravityObject &asteroid : asteroids)
+            DrawCircleV(asteroid.getPosition(),
+                        asteroid.getRadius(),
+                        asteroid.getTint());
 
         DrawFPS(0, 0);
         EndDrawing();
@@ -34,4 +42,30 @@ int main()
     CloseWindow();
 
     return 0;
+}
+
+void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids)
+{
+    for (auto i{0}; i < 5; ++i)
+    {
+        float angleInDegree{static_cast<float>(Random::get(0, 360))};
+        float angleInRadian{(angleInDegree * PI) / 180};
+        constexpr float speed{100};
+
+        ZeroGravityObject asteroid{
+            speed * std::cos(angleInRadian),
+            -speed * std::sin(angleInRadian)};
+
+        asteroid.setPosition(Vector2{
+            static_cast<float>(Random::get(0, GetScreenWidth())),
+            static_cast<float>(Random::get(0, GetScreenHeight())),
+        });
+        constexpr float asteroidRadius{50};
+
+        asteroid.setRadius(asteroidRadius);
+
+        asteroid.setTint(DARKGRAY);
+
+        asteroids.push_front(asteroid);
+    }
 }

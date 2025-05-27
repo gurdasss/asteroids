@@ -1,13 +1,13 @@
 #include "Circle2D.h"
 #include <raylib.h>
 
-#ifndef ASTEROID_H
-#define ASTEROID_H
+#ifndef ZERO_GRAVITY_OBJECT_H
+#define ZERO_GRAVITY_OBJECT_H
 
-class Asteroid : public Circle2D
+class ZeroGravityObject : public Circle2D
 {
 public:
-    Asteroid(float initialVelocityX = 0, float initialVelocityY = 0)
+    ZeroGravityObject(float initialVelocityX = 0, float initialVelocityY = 0)
         : m_velocity{initialVelocityX, initialVelocityY}
     {
     }
@@ -20,7 +20,7 @@ private:
     // acceleration so I don't need an acceleration Vector2
 };
 
-inline void Asteroid::applyVelocity(float delta)
+inline void ZeroGravityObject::applyVelocity(float delta)
 {
     setX(getX() + m_velocity.x * delta);
     setY(getY() + m_velocity.y * delta);
