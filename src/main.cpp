@@ -1,4 +1,5 @@
 #include "ZeroGravityObject.h"
+#include "Triangle2D.h"
 #include "Random.h"
 #include <raylib.h>
 #include <forward_list> // for std::forward_list
@@ -6,6 +7,9 @@
 
 void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids);
 void repositionAsteroid(ZeroGravityObject &asteroid);
+void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGravityObject> &asteroids);
+
+Vector2 randomVelocity();
 
 int main()
 {
@@ -19,6 +23,9 @@ int main()
 
     std::forward_list<ZeroGravityObject> asteroids{};
     initAsteroids(asteroids);
+
+    Triangle2D player{};
+    player.setTint(RED);
 
     while (!WindowShouldClose())
     {
@@ -39,6 +46,11 @@ int main()
                         asteroid.getRadius(),
                         asteroid.getTint());
 
+        DrawTriangle(player.getPoint1(),
+                     player.getPoint2(),
+                     player.getPoint3(),
+                     player.getTint());
+
         DrawFPS(0, 0);
         EndDrawing();
     }
@@ -52,13 +64,9 @@ void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids)
 {
     for (auto i{0}; i < 5; ++i)
     {
-        float angleInDegree{static_cast<float>(Random::get(0, 360))};
-        float angleInRadian{(angleInDegree * PI) / 180};
-        constexpr float speed{100};
 
-        ZeroGravityObject bigAsteroid{
-            speed * std::cos(angleInRadian),
-            -speed * std::sin(angleInRadian)};
+        ZeroGravityObject bigAsteroid{randomVelocity().x,
+                                      randomVelocity().y};
 
         bigAsteroid.setPosition(Vector2{
             static_cast<float>(Random::get(0, GetScreenWidth())),
@@ -113,4 +121,33 @@ void repositionAsteroid(ZeroGravityObject &asteroid)
             static_cast<float>(Random::get(0, screenH)),
         });
     }
+}
+
+void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGravityObject> &asteroids)
+{
+    if (asteroids.empty())
+        return;
+
+    for (auto i{0}; i < 2; ++i)
+    {
+        ZeroGravityObject dividedAsteroid{randomVelocity().x,
+                                          randomVelocity().y};
+
+        dividedAsteroid.setRadius(asteroid.getRadius() / 2.0f);
+        dividedAsteroid.setPosition(asteroid.getPosition());
+        dividedAsteroid.setTint(asteroid.getTint());
+
+        asteroids.push_front(dividedAsteroid);
+    }
+}
+
+Vector2 randomVelocity()
+{
+    float angleInDegree{static_cast<float>(Random::get(0, 360))};
+    float angleInRadian{(angleInDegree * PI) / 180};
+    constexpr float speed{100};
+
+    return Vector2{
+        speed * std::cos(angleInRadian),
+        -speed * std::sin(angleInRadian)};
 }
