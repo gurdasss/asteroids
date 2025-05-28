@@ -1,10 +1,11 @@
 #include "ZeroGravityObject.h"
 #include "Random.h"
 #include <raylib.h>
-#include <forward_list>
-#include <cmath>
+#include <forward_list> // for std::forward_list
+#include <cmath>        // for std::sin & std::cos
 
 void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids);
+void repositionAsteroid(ZeroGravityObject &asteroid);
 
 int main()
 {
@@ -22,10 +23,13 @@ int main()
     while (!WindowShouldClose())
     {
 
-        [[maybe_unused]] constexpr float delta{1.0f / targetFPS};
+        constexpr float delta{1.0f / targetFPS};
 
         for (ZeroGravityObject &asteroid : asteroids)
+        {
             asteroid.applyVelocity(delta);
+            repositionAsteroid(asteroid);
+        }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -52,20 +56,61 @@ void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids)
         float angleInRadian{(angleInDegree * PI) / 180};
         constexpr float speed{100};
 
-        ZeroGravityObject asteroid{
+        ZeroGravityObject bigAsteroid{
             speed * std::cos(angleInRadian),
             -speed * std::sin(angleInRadian)};
 
-        asteroid.setPosition(Vector2{
+        bigAsteroid.setPosition(Vector2{
             static_cast<float>(Random::get(0, GetScreenWidth())),
             static_cast<float>(Random::get(0, GetScreenHeight())),
         });
-        constexpr float asteroidRadius{50};
 
-        asteroid.setRadius(asteroidRadius);
+        bigAsteroid.setRadius(50);
 
-        asteroid.setTint(DARKGRAY);
+        bigAsteroid.setTint(DARKGRAY);
 
-        asteroids.push_front(asteroid);
+        asteroids.push_front(bigAsteroid);
+    }
+}
+
+void repositionAsteroid(ZeroGravityObject &asteroid)
+{
+    int screenW{GetScreenWidth()};
+    int screenH{GetScreenHeight()};
+
+    // Check if an asteroid cross the following edges:
+
+    // BOTTOM-EDGE
+    if (asteroid.getY() > static_cast<float>(screenH) + asteroid.getRadius())
+    {
+        asteroid.setPosition(Vector2{
+            static_cast<float>(Random::get(0, screenW)),
+            -asteroid.getRadius(),
+        });
+    }
+    // TOP-EDGE
+    else if (asteroid.getY() < -asteroid.getRadius())
+    {
+        asteroid.setPosition(Vector2{
+            static_cast<float>(Random::get(0, screenW)),
+            static_cast<float>(screenH) + asteroid.getRadius(),
+        });
+    }
+
+    // RIGHT-EDGE
+    if (asteroid.getX() > static_cast<float>(screenW) + asteroid.getRadius())
+    {
+        asteroid.setPosition(Vector2{
+            -asteroid.getRadius(),
+            static_cast<float>(Random::get(0, screenH)),
+        });
+    }
+    // LEFT-EDGE
+    else if (asteroid.getX() < -asteroid.getRadius())
+    {
+        asteroid.setPosition(Vector2{
+            static_cast<float>(screenW) + asteroid.getRadius(),
+            static_cast<float>(Random::get(0, screenH)),
+        });
     }
 }
