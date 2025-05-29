@@ -1,5 +1,5 @@
 #include "ZeroGravityObject.h"
-#include "Triangle2D.h"
+#include "Player.h"
 #include "Random.h"
 #include <raylib.h>
 #include <forward_list> // for std::forward_list
@@ -24,11 +24,17 @@ int main()
     std::forward_list<ZeroGravityObject> asteroids{};
     initAsteroids(asteroids);
 
-    Triangle2D player{};
-    player.setTint(RED);
+    Player player{10, 20};
+    player.setPosition(Vector2{screenW / 2, screenH / 2});
+    player.setColor(RED);
 
     while (!WindowShouldClose())
     {
+
+        if (IsKeyDown(KEY_LEFT))
+            ;
+        else if (IsKeyDown(KEY_RIGHT))
+            ;
 
         constexpr float delta{1.0f / targetFPS};
 
@@ -46,10 +52,7 @@ int main()
                         asteroid.getRadius(),
                         asteroid.getTint());
 
-        DrawTriangle(player.getPoint1(),
-                     player.getPoint2(),
-                     player.getPoint3(),
-                     player.getTint());
+        player.draw();
 
         DrawFPS(0, 0);
         EndDrawing();
