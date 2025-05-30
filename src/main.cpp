@@ -4,6 +4,7 @@
 #include <raylib.h>
 #include <forward_list> // for std::forward_list
 #include <cmath>        // for std::sin & std::cos
+#include <iostream>
 
 void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids);
 void repositionAsteroid(ZeroGravityObject &asteroid);
@@ -24,17 +25,28 @@ int main()
     std::forward_list<ZeroGravityObject> asteroids{};
     initAsteroids(asteroids);
 
-    Player player{10, 20};
+    Player player{20};
     player.setPosition(Vector2{screenW / 2, screenH / 2});
     player.setColor(RED);
 
     while (!WindowShouldClose())
     {
 
+        constexpr float minDegree{0};
+        constexpr float maxDegree{360};
+
+        // clamp the rotation
+        if (player.getRotation() < minDegree)
+            player.setRotation(maxDegree);
+        else if (player.getRotation() > maxDegree)
+            player.setRotation(minDegree);
+
+        constexpr float rotationalSpeed{5};
+
         if (IsKeyDown(KEY_LEFT))
-            ;
+            player.setRotation(player.getRotation() - rotationalSpeed);
         else if (IsKeyDown(KEY_RIGHT))
-            ;
+            player.setRotation(player.getRotation() + rotationalSpeed);
 
         constexpr float delta{1.0f / targetFPS};
 
@@ -67,9 +79,10 @@ void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids)
 {
     for (auto i{0}; i < 5; ++i)
     {
+        Vector2 initialVelocity{randomVelocity()};
 
-        ZeroGravityObject bigAsteroid{randomVelocity().x,
-                                      randomVelocity().y};
+        ZeroGravityObject bigAsteroid{initialVelocity.x,
+                                      initialVelocity.y};
 
         bigAsteroid.setPosition(Vector2{
             static_cast<float>(Random::get(0, GetScreenWidth())),
@@ -133,8 +146,10 @@ void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGrav
 
     for (auto i{0}; i < 2; ++i)
     {
-        ZeroGravityObject dividedAsteroid{randomVelocity().x,
-                                          randomVelocity().y};
+        Vector2 initialVelocity{randomVelocity()};
+
+        ZeroGravityObject dividedAsteroid{initialVelocity.x,
+                                          initialVelocity.y};
 
         dividedAsteroid.setRadius(asteroid.getRadius() / 2.0f);
         dividedAsteroid.setPosition(asteroid.getPosition());
