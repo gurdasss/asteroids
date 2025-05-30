@@ -7,8 +7,8 @@
 class ZeroGravityObject : public Circle2D
 {
 public:
-    ZeroGravityObject(float initialVelocityX = 0, float initialVelocityY = 0)
-        : m_velocity{initialVelocityX, initialVelocityY}
+    ZeroGravityObject(const Vector2 &initialVelocity = Vector2{})
+        : m_velocity{initialVelocity}
     {
     }
 

@@ -10,7 +10,7 @@ void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids);
 void repositionAsteroid(ZeroGravityObject &asteroid);
 void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGravityObject> &asteroids);
 
-Vector2 randomVelocity();
+Vector2 degreeToVelocity(float degree, float speed);
 
 int main()
 {
@@ -24,6 +24,8 @@ int main()
 
     std::forward_list<ZeroGravityObject> asteroids{};
     initAsteroids(asteroids);
+
+    std::forward_list<ZeroGravityObject> projectiles{};
 
     Player player{20};
     player.setPosition(Vector2{screenW / 2, screenH / 2});
@@ -48,12 +50,51 @@ int main()
         else if (IsKeyDown(KEY_RIGHT))
             player.setRotation(player.getRotation() + rotationalSpeed);
 
+        if (IsKeyPressed(KEY_SPACE))
+        {
+            // it worked for some reason when I inverted
+            // the degree
+
+            float angleInDegree{-player.getRotation()};
+            constexpr float speed{200};
+
+            ZeroGravityObject projectile{degreeToVelocity(angleInDegree, speed)};
+
+            projectile.setPosition(player.getPosition());
+            projectile.setRadius(5);
+            projectile.setTint(BLUE);
+
+            projectiles.push_front(projectile);
+        }
+
         constexpr float delta{1.0f / targetFPS};
 
         for (ZeroGravityObject &asteroid : asteroids)
         {
             asteroid.applyVelocity(delta);
             repositionAsteroid(asteroid);
+        }
+
+        auto previousProjectile{projectiles.before_begin()};
+        for (auto projectile{projectiles.begin()};
+             projectile != projectiles.cend();
+             ++projectile)
+        {
+            projectile->applyVelocity(delta);
+
+            if (
+                (projectile->getX() > screenW + projectile->getRadius()) ||
+                (projectile->getX() < -projectile->getRadius()) ||
+                (projectile->getY() > screenH + projectile->getRadius()) ||
+                (projectile->getY() < -projectile->getRadius()))
+            {
+                projectile = projectiles.erase_after(previousProjectile);
+
+                if (projectile == projectiles.cend())
+                    break;
+            }
+
+            ++previousProjectile;
         }
 
         BeginDrawing();
@@ -63,6 +104,11 @@ int main()
             DrawCircleV(asteroid.getPosition(),
                         asteroid.getRadius(),
                         asteroid.getTint());
+
+        for (const ZeroGravityObject &projectile : projectiles)
+            DrawCircleV(projectile.getPosition(),
+                        projectile.getRadius(),
+                        projectile.getTint());
 
         player.draw();
 
@@ -79,10 +125,13 @@ void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids)
 {
     for (auto i{0}; i < 5; ++i)
     {
-        Vector2 initialVelocity{randomVelocity()};
+        constexpr float speed{100};
+        float randomDegree{static_cast<float>(Random::get(0, 360))};
 
-        ZeroGravityObject bigAsteroid{initialVelocity.x,
-                                      initialVelocity.y};
+        ZeroGravityObject bigAsteroid{
+            degreeToVelocity(
+                randomDegree,
+                speed)};
 
         bigAsteroid.setPosition(Vector2{
             static_cast<float>(Random::get(0, GetScreenWidth())),
@@ -146,10 +195,11 @@ void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGrav
 
     for (auto i{0}; i < 2; ++i)
     {
-        Vector2 initialVelocity{randomVelocity()};
+        constexpr float speed{100};
+        float randomDegree{static_cast<float>(Random::get(0, 360))};
 
-        ZeroGravityObject dividedAsteroid{initialVelocity.x,
-                                          initialVelocity.y};
+        ZeroGravityObject dividedAsteroid{degreeToVelocity(
+            randomDegree, speed)};
 
         dividedAsteroid.setRadius(asteroid.getRadius() / 2.0f);
         dividedAsteroid.setPosition(asteroid.getPosition());
@@ -159,11 +209,9 @@ void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGrav
     }
 }
 
-Vector2 randomVelocity()
+Vector2 degreeToVelocity(float degree, float speed)
 {
-    float angleInDegree{static_cast<float>(Random::get(0, 360))};
-    float angleInRadian{(angleInDegree * PI) / 180};
-    constexpr float speed{100};
+    float angleInRadian{(degree * PI) / 180};
 
     return Vector2{
         speed * std::cos(angleInRadian),
