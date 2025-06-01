@@ -10,6 +10,8 @@ void initAsteroids(std::forward_list<ZeroGravityObject> &asteroids);
 void repositionAsteroid(ZeroGravityObject &asteroid);
 void splitAsteroid(const ZeroGravityObject &asteroid, std::forward_list<ZeroGravityObject> &asteroids);
 
+void asteroidCollisionWithProjectiles(const ZeroGravityObject &asteroid, std::forward_list<ZeroGravityObject> &asteroids, std::forward_list<ZeroGravityObject> &projectiles);
+
 Vector2 degreeToVelocity(float degree, float speed);
 
 int main()
@@ -69,33 +71,65 @@ int main()
 
         constexpr float delta{1.0f / targetFPS};
 
-        for (ZeroGravityObject &asteroid : asteroids)
-        {
-            asteroid.applyVelocity(delta);
-            repositionAsteroid(asteroid);
-        }
+        // maybe I can use a while loop here!!
 
         auto previousProjectile{projectiles.before_begin()};
-        for (auto projectile{projectiles.begin()};
-             projectile != projectiles.cend();
-             ++projectile)
+        auto projectile{projectiles.begin()};
+        auto previousAsteroid{asteroids.before_begin()};
+        auto asteroid{asteroids.begin()};
+
+        while (asteroid != asteroids.cend() || projectile != projectiles.cend())
         {
-            projectile->applyVelocity(delta);
+            // update all asteroids if ONLY asteroid list is non-empty
+            // update all projectile if ONLY projectile list is non-empty
+            // break
 
-            if (
-                (projectile->getX() > screenW + projectile->getRadius()) ||
-                (projectile->getX() < -projectile->getRadius()) ||
-                (projectile->getY() > screenH + projectile->getRadius()) ||
-                (projectile->getY() < -projectile->getRadius()))
+            if (asteroid != asteroids.cend())
             {
-                projectile = projectiles.erase_after(previousProjectile);
+                asteroid->applyVelocity(delta);
+                repositionAsteroid(*asteroid);
 
-                if (projectile == projectiles.cend())
-                    break;
+                ++previousAsteroid;
+                ++asteroid;
             }
 
-            ++previousProjectile;
+            if (projectile != projectiles.cend())
+            {
+                projectile->applyVelocity(delta);
+
+                ++previousProjectile;
+                ++projectile;
+            }
         }
+
+        // for (ZeroGravityObject &asteroid : asteroids)
+        // {
+        //     asteroid.applyVelocity(delta);
+        //     repositionAsteroid(asteroid);
+        //     asteroidCollisionWithProjectiles(asteroid, asteroids, projectiles);
+        // }
+
+        // auto previousProjectile{projectiles.before_begin()};
+        // for (auto projectile{projectiles.begin()};
+        //      projectile != projectiles.cend();
+        //      ++projectile)
+        // {
+        //     projectile->applyVelocity(delta);
+
+        //     if (
+        //         (projectile->getX() > screenW + projectile->getRadius()) ||
+        //         (projectile->getX() < -projectile->getRadius()) ||
+        //         (projectile->getY() > screenH + projectile->getRadius()) ||
+        //         (projectile->getY() < -projectile->getRadius()))
+        //     {
+        //         projectile = projectiles.erase_after(previousProjectile);
+
+        //         if (projectile == projectiles.cend())
+        //             break;
+        //     }
+
+        //     ++previousProjectile;
+        // }
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -216,4 +250,29 @@ Vector2 degreeToVelocity(float degree, float speed)
     return Vector2{
         speed * std::cos(angleInRadian),
         -speed * std::sin(angleInRadian)};
+}
+
+void asteroidCollisionWithProjectiles(const ZeroGravityObject &asteroid, std::forward_list<ZeroGravityObject> &asteroids, std::forward_list<ZeroGravityObject> &projectiles)
+{
+    if (projectiles.empty() || asteroids.empty())
+        return;
+
+    auto previousProjectile{projectiles.before_begin()};
+    for (auto projectile{projectiles.begin()};
+         projectile != projectiles.cend();
+         ++projectile)
+    {
+        if (CheckCollisionCircles(asteroid.getPosition(),
+                                  asteroid.getRadius(),
+                                  projectile->getPosition(),
+                                  projectile->getRadius()))
+        {
+            projectile = projectiles.erase_after(previousProjectile);
+
+            if (projectile == projectiles.cend())
+                return;
+        }
+
+        ++previousProjectile;
+    }
 }
